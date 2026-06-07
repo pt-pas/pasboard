@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink:      #E8127D;
+  --pink2:     #C40F6A;
+  --pink-light:#FDE8F3;
+  --yellow:    #F5E642;
+  --yellow2:   #E8D800;
+  --navy:      #1A0028;
+  --muted:     #9E7090;
+  --mist:      #F5D0E8;
+  --bg:        #FFF5FB;
+  --surface:   #FFFFFF;
+  --sapphire:  #E8127D;
+  --sapphire2: #C40F6A;
+  --ice:       #FDE8F3;
+  --lemon:     #F5E642;
+  --sky:       #F5448F;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--navy);min-height:100vh}
+
+.blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:.1}
+.blob-1{width:600px;height:600px;background:#E8127D;top:-160px;left:-160px;opacity:.12}
+.blob-2{width:400px;height:400px;background:#F5E642;top:50%;right:-100px;opacity:.15}
+.blob-3{width:350px;height:350px;background:#F5448F;bottom:-80px;left:30%;opacity:.1}
+
+.screen{position:relative;z-index:1}
+.hidden{display:none!important}
+
+/* ── LOGIN ── */
+#loginScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+.login-card{width:100%;max-width:420px;background:#FFFFFF;border:1.5px solid #F5D0E8;border-radius:24px;padding:48px 40px 40px;box-shadow:0 8px 40px rgba(232,18,125,.12);animation:fadeUp .45s ease both}
+@media(max-width:480px){.login-card{padding:32px 22px 28px}}
+.login-logo{width:56px;height:56px;background:var(--pink);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 4px 24px rgba(232,18,125,.5)}
+.login-title{font-size:24px;font-weight:700;margin-bottom:6px;color:#1A0028}
+.login-sub{font-size:14px;color:#9E7090;margin-bottom:32px;line-height:1.5}
+.field-label{font-size:13px;font-weight:600;margin-bottom:8px;display:block;color:#1A0028}
+.field-input{width:100%;padding:12px 16px;border:1.5px solid #F5D0E8;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;background:#FFF5FB;color:#1A0028;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:20px}
+.field-input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(232,18,125,.1);background:#fff}
+.btn-primary{width:100%;padding:14px;background:var(--pink);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s,transform .1s;box-shadow:0 4px 20px rgba(232,18,125,.5)}
+.btn-primary:hover{background:var(--pink2)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.login-error{margin-top:14px;padding:10px 14px;background:#fff0f0;border:1px solid #ffc0c0;border-radius:8px;font-size:13px;color:#c0392b;display:none}
+.login-error.show{display:block}
+.admin-link{margin-top:24px;text-align:center;font-size:12px;color:var(--muted)}
+.admin-link a{color:#C4A0B8;text-decoration:underline;cursor:pointer}
+.admin-link a:hover{color:var(--yellow)}
+
+/* ── ADMIN ── */
+#adminPanel{min-height:100vh;padding:40px 20px 60px;display:flex;flex-direction:column;align-items:center}
+.admin-card{width:100%;max-width:680px;background:#FFFFFF;border:1.5px solid #F5D0E8;border-radius:24px;padding:40px;box-shadow:0 8px 40px rgba(232,18,125,.1);animation:fadeUp .4s ease both}
+@media(max-width:480px){.admin-card{padding:24px 18px}}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+.admin-title{font-size:20px;font-weight:700;color:#1A0028}
+.btn-back{padding:8px 16px;background:#FFF5FB;border:1.5px solid #F5D0E8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:#1A0028;transition:background .2s}
+.btn-back:hover{background:#F5D0E8}
+.admin-section-title{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#E8127D;margin-bottom:10px;margin-top:24px}
+.admin-section-title:first-of-type{margin-top:0}
+.admin-input{width:100%;padding:11px 14px;border:1.5px solid #F5D0E8;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;background:#FFF5FB;color:#1A0028;outline:none;transition:border-color .2s;margin-bottom:6px}
+.admin-input:focus{border-color:var(--pink);background:#fff}
+.admin-hint{font-size:12px;color:#9E7090;margin-bottom:12px}
+.client-block{background:#FFF5FB;border:1.5px solid #F5D0E8;border-radius:12px;padding:16px;margin-bottom:10px}
+.client-block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.client-block-label{font-size:12px;font-weight:700;color:#E8127D;text-transform:uppercase;letter-spacing:.05em}
+.client-remove{font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif}
+.client-remove:hover{color:#ff6090}
+.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.client-grid{grid-template-columns:1fr}}
+.field-mini-label{font-size:12px;font-weight:600;color:#9E7090;margin-bottom:5px}
+.btn-add-client{width:100%;padding:11px;background:transparent;border:1.5px dashed #F5D0E8;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:#C4A0B8;cursor:pointer;margin-bottom:12px;transition:border-color .2s,color .2s}
+.btn-add-client:hover{border-color:var(--pink);color:var(--pink)}
+.btn-save{margin-top:24px;width:100%;padding:14px;background:var(--pink);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;box-shadow:0 4px 20px rgba(232,18,125,.45)}
+.btn-save:hover{background:var(--pink2)}
+.btn-save:disabled{opacity:.6;cursor:not-allowed}
+.save-msg{margin-top:12px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#15803d;display:none;text-align:center}
+.save-msg.show{display:block}
+.loading-cfg{text-align:center;padding:32px;font-size:14px;color:#9E7090}
+
+/* ── DASHBOARD ── */
+#dashboard{min-height:100vh;padding:0 0 60px}
+.dash-header{background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1.5px solid #F5D0E8;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+@media(max-width:600px){.dash-header{padding:14px 18px;flex-wrap:wrap;gap:8px}}
+.dash-logo{display:flex;align-items:center;gap:10px}
+.dash-logo-icon{width:36px;height:36px;background:var(--pink);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(232,18,125,.5)}
+.dash-logo-name{font-size:16px;font-weight:700;color:#1A0028}
+.dash-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dash-client-label{font-size:14px;color:#9E7090;font-weight:500}
+.btn-logout{padding:7px 14px;background:#FFF5FB;border:1.5px solid #F5D0E8;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:#1A0028;transition:background .2s}
+.btn-logout:hover{background:#F5D0E8}
+.btn-refresh{padding:7px 14px;background:#FFFBCC;border:1.5px solid #E8D800;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:#8B7A00;transition:background .2s}
+.btn-refresh:hover{background:#FFF5A0}
+.btn-refresh:disabled{opacity:.5;cursor:not-allowed}
+
+.dash-body{padding:32px}
+@media(max-width:600px){.dash-body{padding:20px}}
+.dash-greeting{margin-bottom:28px}
+.dash-greeting h1{font-size:26px;font-weight:700;color:#1A0028}
+.dash-greeting p{font-size:14px;color:#9E7090;margin-top:4px}
+
+.summary-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px}
+.summary-chip{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid transparent}
+.chip-dot{width:8px;height:8px;border-radius:50%}
+.chip-25{background:#fff7ed;border-color:#fed7aa;color:#9a3412}.chip-25 .chip-dot{background:#f97316}
+.chip-50{background:#FFFBCC;border-color:#E8D800;color:#7A6B00}.chip-50 .chip-dot{background:#E8D800}
+.chip-75{background:#FDE8F3;border-color:#F5A0CF;color:#A0005A}.chip-75 .chip-dot{background:var(--pink)}
+.chip-100{background:#f0fdf4;border-color:#86efac;color:#14532d}.chip-100 .chip-dot{background:#22c55e}
+
+/* ── PROJECT CARDS ── */
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+@media(max-width:400px){.projects-grid{grid-template-columns:1fr}}
+.project-card{background:#FFFFFF;border:1.5px solid #F5D0E8;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(232,18,125,.08);animation:fadeUp .45s ease both;transition:box-shadow .2s,transform .2s}
+.project-card:hover{box-shadow:0 8px 32px rgba(232,18,125,.18);transform:translateY(-2px)}
+.project-card:nth-child(1){animation-delay:.04s}
+.project-card:nth-child(2){animation-delay:.08s}
+.project-card:nth-child(3){animation-delay:.12s}
+.project-card:nth-child(4){animation-delay:.16s}
+.project-card:nth-child(5){animation-delay:.20s}
+.project-card:nth-child(6){animation-delay:.24s}
+
+.card-accent{height:4px;background:linear-gradient(90deg,var(--pink),var(--yellow))}
+.card-body{padding:22px 22px 16px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px}
+.card-name{font-size:17px;font-weight:700;line-height:1.3;color:#1A0028}
+.status-badge{flex-shrink:0;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700}
+.badge-25{background:#fff7ed;color:#9a3412}
+.badge-50{background:#FFFBCC;color:#7A6B00}
+.badge-75{background:#FDE8F3;color:#A0005A}
+.badge-100{background:#f0fdf4;color:#14532d}
+.badge-other{background:#f5f5f5;color:#666}
+
+.card-meta{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.meta-item{display:flex;flex-direction:column;gap:2px}
+.meta-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9E7090}
+.meta-val{font-size:13px;font-weight:500;color:#1A0028}
+.card-pic{display:flex;align-items:center;gap:8px}
+.pic-avatar{width:28px;height:28px;border-radius:50%;background:#FDE8F3;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#E8127D;border:1.5px solid #F5A0CF}
+.pic-name{font-size:13px;font-weight:500;color:#1A0028}
+
+/* ── NEON TUBE PROGRESS ── */
+.neon-section{padding:16px 22px 20px;background:#1A0028;border-top:1px solid #F5D0E8}
+
+.neon-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(245,230,66,.8);margin-bottom:14px}
+
+/* the tube container */
+.neon-tube-wrap{position:relative;margin-bottom:8px}
+
+/* dark background tube (the glass) */
+.neon-tube{
+  position:relative;
+  height:28px;
+  background:#0d0018;
+  border-radius:100px;
+  border:2px solid rgba(232,18,125,.25);
+  overflow:hidden;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.8), inset 0 -1px 3px rgba(255,255,255,.03);
+}
+
+/* end caps - connector pins */
+.neon-tube::before,.neon-tube::after{
+  content:'';position:absolute;top:50%;transform:translateY(-50%);
+  width:8px;height:16px;z-index:5;border-radius:3px;
+}
+.neon-tube::before{left:-6px;background:linear-gradient(180deg,#5a1040,#2a0030);border:1px solid rgba(232,18,125,.4)}
+.neon-tube::after{right:-6px;background:linear-gradient(180deg,#5a1040,#2a0030);border:1px solid rgba(232,18,125,.4)}
+
+/* the glowing light fill */
+.neon-fill{
+  position:absolute;top:0;left:0;height:100%;
+  width:0%;
+  border-radius:100px;
+  transition:width 1.4s cubic-bezier(.4,0,.2,1);
+}
+
+/* glass glare overlay */
+.neon-glare{
+  position:absolute;top:1px;left:2%;width:96%;height:35%;
+  border-radius:100px;
+  background:linear-gradient(180deg,rgba(255,255,255,.25) 0%,transparent 100%);
+  pointer-events:none;z-index:4;
+}
+
+/* pct colors with glow */
+.neon-fill.pct-25{
+  background:linear-gradient(90deg,#C40F6A,#E8127D,#F5448F);
+  box-shadow:0 0 10px #E8127D, 0 0 20px #E8127D, 0 0 40px rgba(232,18,125,.6), inset 0 0 12px rgba(255,100,180,.3);
+}
+.neon-fill.pct-50{
+  background:linear-gradient(90deg,#c4b800,#F5E642,#fff176);
+  box-shadow:0 0 10px #F5E642, 0 0 20px #F5E642, 0 0 40px rgba(245,230,66,.6), inset 0 0 12px rgba(255,255,150,.3);
+}
+.neon-fill.pct-75{
+  background:linear-gradient(90deg,#E8127D,#F5448F,#ff80c0);
+  box-shadow:0 0 10px #F5448F, 0 0 20px #F5448F, 0 0 40px rgba(245,68,143,.65), inset 0 0 12px rgba(255,150,210,.3);
+}
+.neon-fill.pct-100{
+  background:linear-gradient(90deg,#15803d,#22c55e,#4ade80);
+  box-shadow:0 0 10px #22c55e, 0 0 20px #22c55e, 0 0 40px rgba(34,197,94,.5), inset 0 0 12px rgba(100,255,150,.3);
+}
+
+/* outer glow on the tube when lit */
+.neon-tube.lit-25  {box-shadow:inset 0 2px 8px rgba(0,0,0,.8),0 0 10px rgba(232,18,125,.5),0 0 20px rgba(232,18,125,.25)}
+.neon-tube.lit-50  {box-shadow:inset 0 2px 8px rgba(0,0,0,.8),0 0 10px rgba(245,230,66,.5),0 0 20px rgba(245,230,66,.2)}
+.neon-tube.lit-75  {box-shadow:inset 0 2px 8px rgba(0,0,0,.8),0 0 10px rgba(245,68,143,.5),0 0 20px rgba(245,68,143,.25)}
+.neon-tube.lit-100 {box-shadow:inset 0 2px 8px rgba(0,0,0,.8),0 0 8px rgba(34,197,94,.4),0 0 16px rgba(34,197,94,.2)}
+
+/* wrench icon on tube */
+.neon-wrench-icon{
+  position:absolute;top:-18px;
+  transform:translateX(-50%);
+  font-size:18px;
+  transition:left 1.4s cubic-bezier(.4,0,.2,1);
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  z-index:10;
+  animation:wrenchBob 2s ease-in-out infinite;
+}
+
+/* milestone tick lines inside tube */
+.neon-markers{position:absolute;inset:0;pointer-events:none;z-index:3}
+.neon-marker-tick{position:absolute;top:0;height:100%;width:1px;background:rgba(232,18,125,.25);}
+.neon-marker-tick[data-pos="25"]{left:25%}
+.neon-marker-tick[data-pos="50"]{left:50%}
+.neon-marker-tick[data-pos="75"]{left:75%}
+.neon-marker-tick[data-pos="100"]{left:99%}
+
+/* milestone labels row below tube - clickable */
+.neon-labels-row{display:flex;justify-content:space-between;padding:10px 0 0;pointer-events:all}
+.neon-label-btn{
+  width:25%;text-align:center;
+  font-size:11px;font-weight:600;color:rgba(255,150,210,.7);
+  cursor:pointer;user-select:none;
+  padding:4px 2px;border-radius:6px;
+  transition:color .2s,background .2s;
+  font-family:'DM Sans',sans-serif;
+  line-height:1.4;
+  background:none;border:none;
+}
+.neon-label-btn:hover{color:#F5E642;background:rgba(245,230,66,.1)}
+.neon-label-btn.active{color:#ff80c0;font-weight:700}
+.neon-label-btn span{display:block;font-size:9px;font-weight:400;color:rgba(255,150,210,.5);margin-top:1px}
+.neon-label-btn.active span{color:rgba(255,150,210,.7)}
+
+/* ── ITEMS ── */
+.items-section{border-top:1.5px solid #F5D0E8}
+.items-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#E8127D;padding:14px 22px 8px}
+.item-row{border-bottom:1px solid #F5D0E8}
+.item-row:last-child{border-bottom:none}
+.item-header{display:flex;align-items:center;justify-content:space-between;padding:10px 22px;cursor:pointer;user-select:none;transition:background .15s}
+.item-header:hover{background:#FFF5FB}
+.item-left{display:flex;align-items:center;gap:9px}
+.item-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:#FDE8F3}
+.item-name{font-size:14px;font-weight:600;color:#1A0028}
+.item-chevron{font-size:11px;color:#C4A0B8;transition:transform .25s}
+.item-row.open .item-chevron{transform:rotate(180deg)}
+.item-detail{padding:0 22px;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s ease;background:#FFF5FB}
+.item-row.open .item-detail{max-height:500px;padding:0 22px 14px}
+.spec-row{display:flex;gap:12px;align-items:flex-start;font-size:13px;padding:7px 0;border-bottom:1px solid #F5D0E8}
+.spec-row:last-child{border-bottom:none}
+.spec-key{font-weight:600;color:#E8127D;min-width:110px;flex-shrink:0}
+.spec-val{color:#1A0028;line-height:1.5}
+
+/* ── STATE / LOADING ── */
+.state-box{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 20px;text-align:center;gap:12px}
+.state-icon{font-size:40px}
+.state-title{font-size:18px;font-weight:700;color:#1A0028}
+.state-sub{font-size:14px;color:#9E7090;max-width:320px;line-height:1.6}
+.spinner{width:36px;height:36px;border:3px solid rgba(232,18,125,.2);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes wrenchBob{0%,100%{transform:translateX(-50%) rotate(-10deg)}50%{transform:translateX(-50%) rotate(10deg)}}
+@keyframes flickerOn{0%{opacity:.4}20%{opacity:1}40%{opacity:.7}60%{opacity:1}80%{opacity:.85}100%{opacity:1}}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--mist);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="blobs">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="2" y="10" width="24" height="8" rx="4" fill="#FFF3B0" opacity=".9"/>
+        <rect x="4" y="12" width="6" height="4" rx="1" fill="#1E40AF" opacity=".4"/>
+        <circle cx="14" cy="14" r="2" fill="#FFF3B0"/>
+        <rect x="1" y="12" width="3" height="4" rx="1.5" fill="#DBEAFE"/>
+        <rect x="24" y="12" width="3" height="4" rx="1.5" fill="#DBEAFE"/>
+      </svg>
+    </div>
+    <div class="login-title">Project Tracker</div>
+    <div class="login-sub">Masukkan password yang sudah diberikan untuk melihat status project kamu.</div>
+    <label class="field-label" for="pwdInput">Password</label>
+    <input class="field-input" id="pwdInput" type="password" placeholder="Masukkan password kamu" autocomplete="current-password">
+    <button class="btn-primary" id="btnLogin" onclick="doLogin()">Masuk</button>
+    <div class="login-error" id="loginError">Password tidak ditemukan. Silakan cek kembali.</div>
+    <div class="admin-link"><a onclick="showAdmin()">Admin Setup</a></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminPanel" class="screen hidden">
+  <div class="admin-card">
+    <div class="admin-header">
+      <div class="admin-title">Admin Setup</div>
+      <button class="btn-back" onclick="showLogin()">Kembali</button>
+    </div>
+    <div id="adminFormWrap"><div class="loading-cfg">Memuat konfigurasi...</div></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="screen hidden">
+  <div class="dash-header">
+    <div class="dash-logo">
+      <div class="dash-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="1" y="7" width="18" height="6" rx="3" fill="#FFF3B0" opacity=".9"/>
+          <rect x="3" y="9" width="4" height="2" rx=".5" fill="#1E40AF" opacity=".5"/>
+          <circle cx="10" cy="10" r="1.5" fill="#FFF3B0"/>
+          <rect x="0" y="9" width="2" height="2" rx="1" fill="#DBEAFE"/>
+          <rect x="18" y="9" width="2" height="2" rx="1" fill="#DBEAFE"/>
+        </svg>
+      </div>
+      <div class="dash-logo-name">Project Tracker</div>
+    </div>
+    <div class="dash-meta">
+      <span class="dash-client-label" id="dashClientName"></span>
+      <button class="btn-refresh" id="btnRefresh" onclick="refreshDashboard()">↻ Refresh</button>
+      <button class="btn-logout" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-greeting">
+      <h1 id="dashGreeting">Halo!</h1>
+      <p id="dashSub">Berikut status project kamu saat ini.</p>
+    </div>
+    <div class="summary-bar" id="summaryBar"></div>
+    <div id="projectsContainer"></div>
+  </div>
+</div>
+
+<script>
+const PROXY = 'https://script.google.com/macros/s/AKfycbwXLR_Hf7vABZ2EUPRWTndPcfXzL8LERe5Y_C6od_r7_5Ye4SZDz_HwGwtDaDzeaK51OQ/exec';
+
+/* ── SCREENS ── */
+function showLogin(){s('loginScreen','');s('adminPanel','hidden');s('dashboard','hidden')}
+function showDashScreen(){s('loginScreen','hidden');s('adminPanel','hidden');s('dashboard','')}
+function showAdminScreen(){s('loginScreen','hidden');s('adminPanel','');s('dashboard','hidden');loadAdminForm()}
+function s(id,cls){cls==='hidden'?document.getElementById(id).classList.add('hidden'):document.getElementById(id).classList.remove('hidden')}
+
+/* ── LOGIN ── */
+async function doLogin(){
+  const pwd = document.getElementById('pwdInput').value.trim();
+  if(!pwd) return;
+  const btn = document.getElementById('btnLogin');
+  btn.textContent='Memeriksa...';btn.disabled=true;
+  document.getElementById('loginError').classList.remove('show');
+  try{
+    const cfg = await fetchConfig();
+    const client = (cfg.clients||[]).find(c=>String(c.password)===String(pwd));
+    if(!client){
+      document.getElementById('loginError').classList.add('show');
+      btn.textContent='Masuk';btn.disabled=false;return;
+    }
+    sessionStorage.setItem('activeClient',JSON.stringify(client));
+    loadDashboard(client);
+  }catch(e){
+    document.getElementById('loginError').textContent='Gagal terhubung ke server. Coba lagi.';
+    document.getElementById('loginError').classList.add('show');
+    btn.textContent='Masuk';btn.disabled=false;
+  }
+}
+document.getElementById('pwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+function doLogout(){
+  sessionStorage.removeItem('activeClient');
+  document.getElementById('pwdInput').value='';
+  document.getElementById('btnLogin').textContent='Masuk';
+  document.getElementById('btnLogin').disabled=false;
+  showLogin();
+}
+
+/* ── REFRESH ── */
+async function refreshDashboard(){
+  const saved = sessionStorage.getItem('activeClient');
+  if(!saved) return;
+  const btn = document.getElementById('btnRefresh');
+  btn.textContent='↻';btn.disabled=true;
+  // clear container to force re-render
+  document.getElementById('projectsContainer').innerHTML=
+    `<div class="state-box"><div class="spinner"></div><div class="state-sub">Memuat ulang data...</div></div>`;
+  document.getElementById('summaryBar').innerHTML='';
+  try{
+    const client = JSON.parse(saved);
+    const url = PROXY+(client.gid?`?gid=${encodeURIComponent(client.gid)}`:'');
+    const res = await fetch(url+'&t='+Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const csv = await res.text();
+    if(!csv||csv.trim().length<5) throw new Error('Data kosong');
+    const projects = parseCsv(csv);
+    renderProjects(projects);
+  }catch(err){
+    document.getElementById('projectsContainer').innerHTML=`
+      <div class="state-box">
+        <div class="state-icon">⚠️</div>
+        <div class="state-title">Gagal memuat data</div>
+        <div class="state-sub">${err.message}</div>
+      </div>`;
+  }
+  btn.textContent='↻ Refresh';btn.disabled=false;
+}
+
+/* ── CONFIG ── */
+async function fetchConfig(){
+  const res = await fetch(PROXY+'?action=getConfig&t='+Date.now());
+  const text = await res.text();
+  try{return JSON.parse(text);}catch(e){return{adminPwd:'',clients:[]};}
+}
+
+async function saveConfigRemote(cfg){
+  const params = new URLSearchParams({action:'saveConfig',config:JSON.stringify(cfg)});
+  const res = await fetch(PROXY+'?'+params.toString());
+  return await res.text();
+}
+
+/* ── ADMIN ── */
+let _cachedCfg=null,_cid=0;
+
+function showAdmin(){
+  const adminPwd=prompt('Masukkan password admin:');
+  if(adminPwd===null) return;
+  sessionStorage.setItem('pendingAdminPwd',adminPwd);
+  showAdminScreen();
+}
+
+async function loadAdminForm(){
+  document.getElementById('adminFormWrap').innerHTML='<div class="loading-cfg">Memuat konfigurasi dari server...</div>';
+  try{
+    const cfg=await fetchConfig();
+    const pendingPwd=sessionStorage.getItem('pendingAdminPwd')||'';
+    if(cfg.adminPwd&&cfg.adminPwd!==pendingPwd){
+      document.getElementById('adminFormWrap').innerHTML='<div class="loading-cfg" style="color:#b91c1c">Password admin salah.</div>';
+      setTimeout(showLogin,1500);return;
+    }
+    _cachedCfg=cfg;renderAdminForm(cfg);
+  }catch(e){
+    document.getElementById('adminFormWrap').innerHTML='<div class="loading-cfg" style="color:#b91c1c">Gagal memuat konfigurasi.</div>';
+  }
+}
+
+function renderAdminForm(cfg){
+  _cid=0;
+  document.getElementById('adminFormWrap').innerHTML=`
+    <div class="admin-section-title">Password Admin</div>
+    <input class="admin-input" id="adminPwd" type="password" placeholder="Buat atau ubah password admin">
+    <div class="admin-hint">Kosongkan jika tidak ingin mengubah password admin.</div>
+    <div class="admin-section-title">Daftar Client</div>
+    <div id="clientList"></div>
+    <button class="btn-add-client" onclick="addClientBlock()">+ Tambah Client</button>
+    <button class="btn-save" id="btnSave" onclick="saveConfig()">Simpan Konfigurasi</button>
+    <div class="save-msg" id="saveMsg">Konfigurasi berhasil disimpan!</div>`;
+  (cfg.clients||[]).forEach(c=>addClientBlock(c));
+}
+
+function addClientBlock(data){
+  data=data||{};_cid++;
+  const id=_cid;
+  const d=document.createElement('div');
+  d.className='client-block';d.dataset.cid=id;
+  d.innerHTML=`
+    <div class="client-block-head">
+      <span class="client-block-label">Client #${id}</span>
+      <button class="client-remove" onclick="removeClient(${id})">Hapus</button>
+    </div>
+    <div class="client-grid">
+      <div><div class="field-mini-label">Nama Client</div>
+        <input class="admin-input" data-f="name" value="${esc(data.name||'')}" placeholder="Nama client"></div>
+      <div><div class="field-mini-label">Password</div>
+        <input class="admin-input" data-f="password" value="${esc(String(data.password||''))}" placeholder="Password unik"></div>
+      <div style="grid-column:1/-1"><div class="field-mini-label">GID Tab Sheet</div>
+        <input class="admin-input" data-f="gid" value="${esc(String(data.gid||''))}" placeholder="Contoh: 0">
+        <div class="admin-hint">Angka setelah gid= di URL Google Sheet saat tab tersebut aktif.</div></div>
+    </div>`;
+  document.getElementById('clientList').appendChild(d);
+}
+
+function removeClient(id){const el=document.querySelector(`.client-block[data-cid="${id}"]`);if(el)el.remove()}
+
+async function saveConfig(){
+  const btn=document.getElementById('btnSave');
+  btn.textContent='Menyimpan...';btn.disabled=true;
+  const cfg={adminPwd:'',clients:[]};
+  const newPwd=document.getElementById('adminPwd').value.trim();
+  cfg.adminPwd=newPwd||(_cachedCfg?_cachedCfg.adminPwd:'');
+  document.querySelectorAll('#clientList .client-block').forEach(b=>{
+    cfg.clients.push({
+      name:b.querySelector('[data-f="name"]').value.trim(),
+      password:b.querySelector('[data-f="password"]').value.trim(),
+      gid:b.querySelector('[data-f="gid"]').value.trim()
+    });
+  });
+  try{
+    await saveConfigRemote(cfg);_cachedCfg=cfg;
+    const msg=document.getElementById('saveMsg');msg.classList.add('show');
+    setTimeout(()=>msg.classList.remove('show'),3000);
+  }catch(e){alert('Gagal menyimpan. Coba lagi.');}
+  btn.textContent='Simpan Konfigurasi';btn.disabled=false;
+}
+
+/* ── DASHBOARD LOAD ── */
+async function loadDashboard(client){
+  showDashScreen();
+  document.getElementById('dashClientName').textContent=client.name;
+  document.getElementById('dashGreeting').textContent=`Halo, ${client.name}!`;
+  document.getElementById('dashSub').textContent='Berikut status project kamu saat ini.';
+  document.getElementById('summaryBar').innerHTML='';
+  document.getElementById('projectsContainer').innerHTML=
+    `<div class="state-box"><div class="spinner"></div><div class="state-sub">Memuat data project...</div></div>`;
+
+  const url=PROXY+(client.gid?`?gid=${encodeURIComponent(client.gid)}`:'');
+  try{
+    const res=await fetch(url+'&t='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const csv=await res.text();
+    if(!csv||csv.trim().length<5) throw new Error('Data kosong');
+    renderProjects(parseCsv(csv));
+  }catch(err){
+    document.getElementById('projectsContainer').innerHTML=`
+      <div class="state-box">
+        <div class="state-icon">⚠️</div>
+        <div class="state-title">Gagal memuat data</div>
+        <div class="state-sub">Cek koneksi atau hubungi admin.<br>
+          <small style="color:#999;font-size:11px">${err.message}</small></div>
+      </div>`;
+  }
+}
+
+/* ── CSV ── */
+function parseCsv(text){
+  const rows=[];
+  for(const line of text.split('\n')){
+    if(!line.trim()) continue;
+    const cols=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+      else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    cols.push(cur.trim());rows.push(cols);
+  }
+  if(rows.length<2) return[];
+  const hdr=rows[0].map(h=>h.toLowerCase().trim());
+  const ci=kws=>{const i=hdr.findIndex(h=>kws.some(k=>h.includes(k)));return i>=0?i:-1};
+  const iP=ci(['nama project','project']),iT=ci(['tipe','type','jenis']),
+        iS=ci(['spesifikasi','spec','detail']),iSt=ci(['status']),
+        iM=ci(['mulai','start']),iD=ci(['deadline','selesai']),iPIC=ci(['pic']);
+  const map={};
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r];if(!row.some(c=>c)) continue;
+    const name=iP>=0?row[iP]:'';if(!name) continue;
+    if(!map[name]) map[name]={name,status:iSt>=0?row[iSt]:'',tglMulai:iM>=0?row[iM]:'',deadline:iD>=0?row[iD]:'',pic:iPIC>=0?row[iPIC]:'',items:[]};
+    map[name].items.push({tipe:iT>=0?row[iT]:'',spek:iS>=0?row[iS]:''});
+  }
+  return Object.values(map);
+}
+
+/* ── RENDER ── */
+function renderProjects(projects){
+  if(!projects.length){
+    document.getElementById('projectsContainer').innerHTML=`
+      <div class="state-box"><div class="state-icon">📭</div>
+        <div class="state-title">Belum ada project</div>
+        <div class="state-sub">Data akan tampil setelah diisi di Google Sheet.</div></div>`;return;
+  }
+  const cnt={'25':0,'50':0,'75':0,'100':0};
+  projects.forEach(p=>{const k=pct(p.status);if(cnt[k]!==undefined)cnt[k]++;});
+  let chips='';
+  if(cnt['25'])  chips+=mkChip('25',cnt['25']);
+  if(cnt['50'])  chips+=mkChip('50',cnt['50']);
+  if(cnt['75'])  chips+=mkChip('75',cnt['75']);
+  if(cnt['100']) chips+=mkChip('100',cnt['100']);
+  document.getElementById('summaryBar').innerHTML=chips;
+  const grid=document.createElement('div');
+  grid.className='projects-grid';
+  projects.forEach(p=>grid.appendChild(buildCard(p)));
+  document.getElementById('projectsContainer').innerHTML='';
+  document.getElementById('projectsContainer').appendChild(grid);
+
+  // animate neon fills after DOM insert
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.neon-fill[data-pct]').forEach(fill=>{
+      setTimeout(()=>{
+        const p=fill.dataset.pct;
+        fill.classList.add('pct-'+p);
+        const pctW={'25':'25%','50':'50%','75':'75%','100':'100%'};
+        fill.style.width=pctW[p]||'0%';
+        fill.style.animation='flickerOn .6s ease both';
+        // lit class on tube
+        const tube=fill.closest('.neon-tube');
+        if(tube){tube.classList.add('lit-'+p);}
+        // wrench position
+        const wrench=fill.closest('.neon-tube-wrap').querySelector('.neon-wrench-icon');
+        if(wrench) wrench.style.left=pctW[p]||'5%';
+        // active markers
+        fill.closest('.neon-section').querySelectorAll('.neon-marker').forEach(m=>{
+          if(parseInt(m.dataset.pos)<=parseInt(p)) m.classList.add('active');
+        });
+      },120);
+    });
+  });
+}
+
+function mkChip(p,n){return`<div class="summary-chip chip-${p}"><div class="chip-dot"></div>${n} project &bull; ${p}%</div>`}
+
+function pct(status){
+  if(!status) return'other';
+  const s=String(status).replace('%','').trim();
+  if(['25','50','75','100'].includes(s)) return s;
+  const m=s.match(/\d+/);
+  if(m){const n=parseInt(m[0]);if(n<=25)return'25';if(n<=50)return'50';if(n<=75)return'75';return'100';}
+  return'other';
+}
+
+const MILESTONE={
+  '25':{label:'Perencanaan',desc:'Desain disetujui, bahan dipesan, jadwal produksi sudah ditentukan.'},
+  '50':{label:'Produksi',desc:'Proses produksi berjalan: pemotongan, perakitan, dan pemasangan komponen.'},
+  '75':{label:'Finishing',desc:'Produksi selesai. Pengecatan, pemasangan kabel, dan quality check.'},
+  '100':{label:'Selesai',desc:'Project selesai dan siap untuk pengiriman atau pemasangan.'}
+};
+
+function buildCard(p){
+  const pp=pct(p.status);
+  const lbl=pp==='other'?(p.status||'-'):pp+'%';
+  const ini=(p.pic||'-').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+
+  let itemsHtml='';
+  if(p.items&&p.items.length){
+    const rows=p.items.map(item=>{
+      const specs=parseSpek(item.spek);
+      return`<div class="item-row">
+        <div class="item-header" onclick="toggleItem(this.parentElement)">
+          <div class="item-left">
+            <div class="item-icon">${itemEmoji(item.tipe)}</div>
+            <div class="item-name">${esc(item.tipe||'Item')}</div>
+          </div>
+          <div class="item-chevron">▾</div>
+        </div>
+        <div class="item-detail">
+          ${specs.map(sp=>`<div class="spec-row"><span class="spec-key">${esc(sp.key)}</span><span class="spec-val">${esc(sp.val)}</span></div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+    itemsHtml=`<div class="items-section"><div class="items-label">Tipe Barang &amp; Spesifikasi</div>${rows}</div>`;
+  }
+
+  // milestone tick lines inside tube
+  const markers=['25','50','75','100'].map(m=>`
+    <div class="neon-marker-tick" data-pos="${m}"></div>`).join('');
+
+  // milestone label buttons below tube
+  const MLABELS={'25':'Perencanaan','50':'Produksi','75':'Finishing','100':'Selesai'};
+  const pctNum=parseInt(pp)||0;
+  const labelBtns=['25','50','75','100'].map(m=>`
+    <button class="neon-label-btn ${pctNum>=parseInt(m)?'active':''}"
+      onclick="showMilestone('${esc(p.name)}','${m}')">
+      ${m}%<span>${MLABELS[m]}</span>
+    </button>`).join('');
+
+  const card=document.createElement('div');
+  card.className='project-card';
+  card.innerHTML=`
+    <div class="card-accent"></div>
+    <div class="card-body">
+      <div class="card-top">
+        <div class="card-name">${esc(p.name)}</div>
+        <div class="status-badge badge-${pp}">${lbl}</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item"><span class="meta-label">Mulai</span><span class="meta-val">${esc(p.tglMulai||'-')}</span></div>
+        <div class="meta-item"><span class="meta-label">Deadline</span><span class="meta-val">${esc(p.deadline||'-')}</span></div>
+      </div>
+      <div class="card-pic">
+        <div class="pic-avatar">${ini}</div>
+        <div class="pic-name">${esc(p.pic||'-')}</div>
+      </div>
+    </div>
+
+    <div class="neon-section">
+      <div class="neon-section-label">Progress Pengerjaan</div>
+      <div class="neon-tube-wrap">
+        <div class="neon-wrench-icon" style="left:2%">🔧</div>
+        <div class="neon-tube">
+          <div class="neon-fill" data-pct="${pp}" style="width:0%"></div>
+          <div class="neon-glare"></div>
+          <div class="neon-markers">${markers}</div>
+        </div>
+      </div>
+      <div class="neon-labels-row">${labelBtns}</div>
+    </div>
+    ${itemsHtml}`;
+  return card;
+}
+
+function showMilestone(name,p){
+  const info=MILESTONE[p];if(!info) return;
+  alert(`${name}\n\n${p}% — ${info.label}\n\n${info.desc}`);
+}
+
+function itemEmoji(t){
+  const s=(t||'').toLowerCase();
+  if(s.includes('neon')) return'💡';
+  if(s.includes('huruf')) return'🔤';
+  return'📦';
+}
+
+function parseSpek(spek){
+  if(!spek) return[{key:'Detail',val:'-'}];
+  const sp=spek.split(';').map(s=>s.trim()).filter(Boolean);
+  if(sp.some(s=>s.includes(':'))) return sp.map(s=>{const i=s.indexOf(':');return{key:s.slice(0,i).trim(),val:s.slice(i+1).trim()}});
+  const cp=spek.split(',').map(s=>s.trim()).filter(Boolean);
+  if(cp.some(s=>s.includes(':'))) return cp.map(s=>{const i=s.indexOf(':');return{key:s.slice(0,i).trim(),val:s.slice(i+1).trim()}});
+  return[{key:'Detail',val:spek}];
+}
+
+function toggleItem(row){row.classList.toggle('open')}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ── INIT ── */
+(function init(){
+  const saved=sessionStorage.getItem('activeClient');
+  if(saved){try{loadDashboard(JSON.parse(saved));return;}catch(e){sessionStorage.removeItem('activeClient');}}
+  showLogin();
+})();
+</script>
+</body>
+</html>
